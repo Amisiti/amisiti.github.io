@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Getting Started With Amazon Redshift</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.">
+	<link rel="canonical" href="/getting-started-with-redshift">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	<script type="text/javascript"
+	    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+        
+    <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+    for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+    mixpanel.init("4a9ea1c313c2d3a01e19ad4f9558dba4");</script><!-- end Mixpanel -->
+</head>
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		<nav class="site-nav">
+			<div class="trigger">
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<a class="home-link" href="/">Back To Blog Posts</a>
+    <header class="post-header">
+		<p class="meta">Sep 28, 2015
+            </p>
+		
+		<h1>Getting Started With Amazon Redshift</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>I recently worked on a project in which I was asked to migrate someones analytics database into a Redshift cluster. The backend of this website was using Django, so all of my development was done in Python.</p>
+
+<p>A had a couple of goals before starting the project:</p>
+
+<ol>
+  <li>Keep everything in Python</li>
+  <li>Utilize Django’s ORM when possible</li>
+  <li>Make migrations easy</li>
+</ol>
+
+<p>The first step is to launch a Red Shift cluster on EC2 and your local ip address has to be added CIDR/IP security group of in the redshift dashboard. For testing I like to set it to <code>0.0.0.0\0</code>.</p>
+
+<p>Once you have your cluster up and running, you can try to connect to it using the following command</p>
+
+<p><code>
+psql "host=XXXXXXXX.cilmdlzscpk4.us-east-1.redshift.amazonaws.com user=XXXXXXX dbname=XXXXX port=5439"
+</code> </p>
+
+<p>If you can successfully connected, you’re all set, you need to setup your tables. I used the <code>psycopg2</code> to setup these tables, but you could of course manually enter them into the REPL. If you want to take my approach first, assuming you are running on ubuntu, install the <code>postgres</code> requirements</p>
+
+<p><code>
+sudo apt-get install -y postgresql-client-9.3 libpq-dev
+</code></p>
+
+<p>Now install <code>psycopg2</code> using pip:</p>
+
+<p><code>
+pip install psycopg2
+</code></p>
+
+<p>Since we are going to utilize <code>django's</code> orm we need to update <code>settings.py</code>:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
+        <span class="s">&#39;NAME&#39;</span><span class="p">:</span> <span class="s">&#39;home&#39;</span><span class="p">,</span>
+        <span class="s">&#39;USER&#39;</span><span class="p">:</span> <span class="s">&#39;home&#39;</span><span class="p">,</span>
+        <span class="s">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s">&#39;home&#39;</span><span class="p">,</span>
+        <span class="s">&#39;HOST&#39;</span><span class="p">:</span> <span class="s">&#39;localhost&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s">&#39;analytics&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;NAME&#39;</span><span class="p">:</span> <span class="s">&#39;redshift&#39;</span><span class="p">,</span>
+        <span class="s">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s">&#39;django.db.backends.postgresql_psycopg2&#39;</span><span class="p">,</span>
+        <span class="s">&#39;USER&#39;</span><span class="p">:</span> <span class="s">&#39;redshift&#39;</span><span class="p">,</span>
+        <span class="s">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s">&#39;xxxxxxxxx&#39;</span><span class="p">,</span>
+        <span class="s">&#39;HOST&#39;</span><span class="p">:</span> <span class="s">&#39;XXXXXXXXXXX.cilmdlzscpk4.us-east-1.redshift.amazonaws.com&#39;</span><span class="p">,</span>
+        <span class="s">&#39;PORT&#39;</span><span class="p">:</span> <span class="mi">5439</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+<p>We also need to use a database router, to make sure that reads and writes go to redshift on a per app basis (this is something I did per the design of my application, but you might not need to do this):</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Router</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">db_for_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">app_label</span> <span class="o">==</span> <span class="s">&#39;analytics&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;analytics&#39;</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">db_for_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">app_label</span> <span class="o">==</span> <span class="s">&#39;analytics&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;analytics&#39;</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">allow_relation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj1</span><span class="p">,</span> <span class="n">obj2</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj1</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">app_label</span> <span class="o">==</span> <span class="s">&#39;analytics&#39;</span> <span class="ow">or</span> \
+           <span class="n">obj2</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">app_label</span> <span class="o">==</span> <span class="s">&#39;analytics&#39;</span><span class="p">:</span>
+           <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">allow_migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">app_label</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">app_label</span> <span class="o">==</span> <span class="s">&#39;analytics&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">None</span></code></pre></div>
+
+<p>And finally, add the router to <code>settings.py</code></p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">DATABASE_ROUTERS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;path.to.router.Router&#39;</span><span class="p">,]</span></code></pre></div>
+
+<p>OK. everything is setup and ready to go! Adding tables is as simple as calling SQLs <code>create table</code> command:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">CREATE_TABLE</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    create table mytable(</span>
+<span class="s">        id INT IDENTITY(1,1),</span>
+<span class="s">        event_id integer not null,</span>
+<span class="s">        job_id integer not null,</span>
+<span class="s">        count integer not null,</span>
+<span class="s">        primary key(id));</span>
+<span class="s">&quot;&quot;&quot;</span></code></pre></div>
+
+<p>Now using <code>psycopg2</code>:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+    <span class="n">host</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;redshift&#39;</span><span class="p">][</span><span class="s">&#39;HOST&#39;</span><span class="p">],</span> 
+    <span class="n">user</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;redshift&#39;</span><span class="p">][</span><span class="s">&#39;USER&#39;</span><span class="p">],</span> 
+    <span class="n">port</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;redshift&#39;</span><span class="p">][</span><span class="s">&#39;PORT&#39;</span><span class="p">],</span> 
+    <span class="n">password</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;redshift&#39;</span><span class="p">][</span><span class="s">&#39;PASSWORD&#39;</span><span class="p">],</span> 
+    <span class="n">dbname</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;redshift&#39;</span><span class="p">][</span><span class="s">&#39;NAME&#39;</span><span class="p">])</span>
+<span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">CREATE_TABLE</span><span class="p">)</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></code></pre></div>
+
+
+	</article>
+    
+    <script>
+        mixpanel.track("Getting Started With Amazon Redshift");
+    </script>
+    
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li>Math, CS, Statsitics, and the occasional book review</li>
+				<li>
+					<a href="mailto:"></a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

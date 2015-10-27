@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>How to Upload a Photo To Django Using iOS and Django Rest Framework</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.">
+	<link rel="canonical" href="/how-to-upload-a-photo-to-django-using-ios">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	<script type="text/javascript"
+	    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+        
+    <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+    for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+    mixpanel.init("4a9ea1c313c2d3a01e19ad4f9558dba4");</script><!-- end Mixpanel -->
+</head>
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		<nav class="site-nav">
+			<div class="trigger">
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<a class="home-link" href="/">Back To Blog Posts</a>
+    <header class="post-header">
+		<p class="meta">Oct 11, 2015
+            </p>
+		
+		<h1>How to Upload a Photo To Django Using iOS and Django Rest Framework</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>I recently built an iOS applicaiton for fun that I use to take pictures of pages in a book, upload them to django, and then ocr them for easy retrival. I was frustrated by the lack of documentation on how to upload an image to django using the Django Rest Framework (DRF), so hopefully this tutorial will clear things up.</p>
+
+<p>This tutorial assumes you have <code>django&lt;1.8</code>, <code>djangorestframework==2.4.2</code>, and <code>django-filter</code> installed.</p>
+
+<h4 id="the-backend">The Backend</h4>
+
+<p>First, lets create the model that will store uploads:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Upload</span><span class="p">(</span><span class="n">TimeStampedModel</span><span class="p">):</span>
+    
+    <span class="n">owner</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">AUTH_USER_MODEL</span><span class="p">)</span>
+    <span class="n">path_to_image</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">datafile</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FileField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="n">url</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">URLField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> 
+            <span class="n">help_text</span><span class="o">=</span><span class="s">&quot;The OCRed text&quot;</span><span class="p">)</span>
+            
+    <span class="n">ocr_successful</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+        <span class="n">help_text</span><span class="o">=</span><span class="s">&quot;was the text successfully OCRed?&quot;</span><span class="p">)</span></code></pre></div>
+
+<p>As you can see, this model has multiple fields that are not really important for this tutorial. All you need to know here is that the <code>owner</code> comes from <code>request.user</code> (the client logged in uploading the image) and that the final image is stored as a url in the <code>url</code> field.</p>
+
+<p>Now lets create the serializer that is going to be used by DRF to handle the upload.</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">rest_framework</span> <span class="kn">import</span> <span class="n">serializers</span>
+
+<span class="k">class</span> <span class="nc">UploadSerializer</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">ModelSerializer</span><span class="p">):</span>
+    
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Upload</span>
+        <span class="n">read_only_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">,</span><span class="s">&#39;owner&#39;</span><span class="p">,</span> <span class="s">&#39;url&#39;</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span></code></pre></div>
+
+<p>This is a very standard DRF serializer. You can read more about how they work <a href="http://www.django-rest-framework.org/api-guide/serializers/">here</a>, but basically serializer can be used to validate data (which I am not doing in this tutorial) and also used to tell the DRF the format and composition of the JSON data returned from the API.</p>
+
+<p>Next, lets create the DSR view to handle the image upload:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">class</span> <span class="nc">UploadList</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
+
+    <span class="n">authentication_classes</span> <span class="o">=</span> <span class="p">(</span><span class="n">TokenAuthentication</span><span class="p">,)</span>
+    <span class="n">permission_classes</span> <span class="o">=</span> <span class="p">(</span><span class="n">IsAuthenticated</span><span class="p">,)</span>
+    <span class="n">parser_classes</span> <span class="o">=</span> <span class="p">(</span><span class="n">MultiPartParser</span><span class="p">,</span> <span class="n">FormParser</span><span class="p">,)</span>
+    
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; handle upload, save it to local file system, start</span>
+<span class="sd">        ocr celery tasks &quot;&quot;&quot;</span>
+        <span class="n">upload</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="p">[</span><span class="s">&#39;file&#39;</span><span class="p">]</span>
+        <span class="n">fh</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">extension</span> <span class="o">=</span>  <span class="n">upload</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s">&quot;{}.{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">extension</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">BufferedWriter</span><span class="p">(</span> <span class="n">FileIO</span><span class="p">(</span> <span class="n">filename</span><span class="p">,</span> <span class="s">&quot;w&quot;</span> <span class="p">)</span> <span class="p">)</span> <span class="k">as</span> <span class="n">dest</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">upload</span><span class="o">.</span><span class="n">chunks</span><span class="p">():</span>
+                <span class="n">dest</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">UPLOAD_TITLE_NAME</span><span class="p">)</span>        
+        <span class="n">upload</span> <span class="o">=</span> <span class="n">Upload</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">owner</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> 
+            <span class="n">title</span><span class="o">=</span><span class="s">&quot;Uploaded @ </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">now</span><span class="p">),</span>
+            <span class="n">url</span><span class="o">=</span><span class="s">&quot;http://example.com/uploads/{name}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]),</span>
+            <span class="n">path_to_image</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">upload</span><span class="o">.</span><span class="n">start_ocr_tasks</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">Response</span><span class="p">({},</span> <span class="n">status</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span></code></pre></div>
+
+<p>This view should be fairly self-explanatory. I am using <code>TokenAuthentication</code> rather than <code>SessionAuthentication</code> for all of my APIs (I will convert to OAuth and some point). I am extracting the photo data from the <code>upload</code> in <code>request.FILES</code>. After I find the data, I figured out the file extension being used , and save the file to my local hard drive by writing chucks of image to a file handle using <code>BufferedWriter</code>. Once the data is on my hard drive, I create a new <code>Upload</code> in the database, and start an OCR task and return <code>HTTP 201</code> because I just created a new database entry.</p>
+
+<p>The important part of this piece of code are the <a href="http://www.django-rest-framework.org/api-guide/parsers/#multipartparser">parser_classes</a>, which tell DRF that I am uploading using <code>multipart</code> rather than it expecting a regular <code>HTTP POST</code>.</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">parser_classes</span> <span class="o">=</span> <span class="p">(</span><span class="n">MultiPartParser</span><span class="p">,</span> <span class="n">FormParser</span><span class="p">,)</span></code></pre></div>
+
+<p>Finally, here is a unit test I used to confirm that the view I just outlined accepts the image data, downloads it locally to a temp file, and returns an <code>HTTP 201</code>.</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">test_upload_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; unit tests for testing image uploads using DRF&quot;&quot;&quot;</span>
+        <span class="n">path_to_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;path&#39;</span><span class="p">,</span><span class="s">&#39;to&#39;</span><span class="p">,</span><span class="s">&#39;image.jpg&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;file&#39;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_to_image</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">URL</span><span class="p">),</span> <span class="n">data</span> <span class="p">,</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;multipart&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span><span class="mi">401</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">force_authenticate</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;file&#39;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_to_image</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">URL</span><span class="p">),</span> <span class="n">data</span> <span class="p">,</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;multipart&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span><span class="mi">201</span><span class="p">)</span></code></pre></div>
+
+<h4 id="the-client">The Client</h4>
+
+<p>The actually <code>HTTP POST</code> that uploads the image is utilizing the excellent <a href="https://github.com/AFNetworking/AFNetworking">AFNetworking</a> library.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">uploadImage:</span><span class="p">(</span><span class="bp">NSData</span><span class="o">*</span><span class="p">)</span><span class="nv">imageData</span>
+                    <span class="nf">params:</span><span class="p">(</span><span class="bp">NSDictionary</span><span class="o">*</span><span class="p">)</span><span class="nv">params</span>
+                   <span class="nf">success:</span><span class="p">(</span><span class="n">TFHTTPClientSuccess</span><span class="p">)</span><span class="nv">success</span>
+                   <span class="nf">failure:</span><span class="p">(</span><span class="n">TFHTTPClientFailure</span><span class="p">)</span><span class="nv">failure</span><span class="p">;</span></code></pre></div>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">uploadImage:</span><span class="p">(</span><span class="bp">NSData</span><span class="o">*</span><span class="p">)</span><span class="nv">imageData</span>
+             <span class="nf">params:</span><span class="p">(</span><span class="bp">NSDictionary</span><span class="o">*</span><span class="p">)</span><span class="nv">params</span>
+            <span class="nf">success:</span><span class="p">(</span><span class="n">TFHTTPClientSuccess</span><span class="p">)</span><span class="nv">success</span>
+            <span class="nf">failure:</span><span class="p">(</span><span class="n">TFHTTPClientFailure</span><span class="p">)</span><span class="nv">failure</span><span class="p">{</span>
+
+    <span class="bp">NSString</span><span class="o">*</span> <span class="n">url</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSString</span> <span class="nl">stringWithFormat</span><span class="p">:</span><span class="s">@&quot;%@%@&quot;</span><span class="p">,</span>
+    <span class="n">BASE_URL</span><span class="p">,</span><span class="s">@&quot;/api/upload/image&quot;</span><span class="p">];</span>
+    <span class="p">[</span><span class="nb">self</span> <span class="nl">POST</span><span class="p">:</span><span class="n">url</span> <span class="nl">parameters</span><span class="p">:</span><span class="n">params</span> 
+    <span class="nl">constructingBodyWithBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">AFMultipartFormData</span><span class="o">&gt;</span> <span class="n">formData</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">[</span><span class="n">formData</span> <span class="nl">appendPartWithFileData</span><span class="p">:</span><span class="n">imageData</span> 
+        <span class="nl">name</span><span class="p">:</span><span class="s">@&quot;file&quot;</span> <span class="nl">fileName</span><span class="p">:</span><span class="s">@&quot;photo.jpg&quot;</span> 
+        <span class="nl">mimeType</span><span class="p">:</span><span class="s">@&quot;image/jpeg&quot;</span><span class="p">];</span>
+    <span class="p">}</span> <span class="nl">success</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="n">AFHTTPRequestOperation</span> <span class="o">*</span><span class="n">operation</span><span class="p">,</span> 
+    <span class="kt">id</span> <span class="n">responseObject</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">success</span><span class="p">){</span>
+            <span class="n">success</span><span class="p">((</span><span class="n">AFHTTPRequestOperation</span> <span class="o">*</span><span class="p">)</span><span class="n">operation</span><span class="p">,</span> <span class="n">responseObject</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span> <span class="nl">failure</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="n">AFHTTPRequestOperation</span> <span class="o">*</span><span class="n">operation</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">failure</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">failure</span><span class="p">((</span><span class="n">AFHTTPRequestOperation</span> <span class="o">*</span><span class="p">)</span><span class="n">operation</span><span class="p">,</span> <span class="n">error</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}];</span></code></pre></div>
+
+<p>The most important part of this code is the following</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="nl">constructingBodyWithBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">AFMultipartFormData</span><span class="o">&gt;</span> <span class="n">formData</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">[</span><span class="n">formData</span> <span class="nl">appendPartWithFileData</span><span class="p">:</span><span class="n">imageData</span> 
+        <span class="nl">name</span><span class="p">:</span><span class="s">@&quot;file&quot;</span> <span class="nl">fileName</span><span class="p">:</span><span class="s">@&quot;photo.jpg&quot;</span> 
+        <span class="nl">mimeType</span><span class="p">:</span><span class="s">@&quot;image/jpeg&quot;</span><span class="p">];</span></code></pre></div>
+
+<p>Which is taking the image data from my iPhone which is living in an <code>NSData</code> object, sticking it in the <code>file</code> parameter in the body (request), and then performing a <a href="http://stackoverflow.com/questions/16958448/what-is-http-multipart-request">multipart request</a></p>
+
+<p>The code that calls this function looks something like this:</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">camera:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">cameraViewController</span> <span class="nf">didFinishWithImage:</span><span class="p">(</span><span class="bp">UIImage</span> <span class="o">*</span><span class="p">)</span><span class="nv">image</span>
+                <span class="nf">withMetadata:</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">metadata</span>
+<span class="p">{</span>
+    <span class="bp">NSData</span> <span class="o">*</span><span class="n">imageData</span> <span class="o">=</span> <span class="n">UIImageJPEGRepresentation</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">);</span>
+    <span class="n">TFHTTPCLient</span><span class="o">*</span> <span class="n">sharedClient</span> <span class="o">=</span> <span class="p">[</span><span class="n">TFHTTPCLient</span> <span class="n">sharedClient</span><span class="p">];</span>
+    <span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">params</span> <span class="o">=</span> <span class="l">@{}</span><span class="p">;</span>
+    <span class="bp">NSString</span><span class="o">*</span> <span class="n">token</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UserManager</span> <span class="n">sharedClient</span><span class="p">]</span> <span class="n">getAuthToken</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">sharedClient</span><span class="p">.</span><span class="n">requestSerializer</span>
+     <span class="nl">setValue</span><span class="p">:[</span><span class="bp">NSString</span> <span class="nl">stringWithFormat</span><span class="p">:</span><span class="s">@&quot;Token %@&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">]</span>
+     <span class="nl">forHTTPHeaderField</span><span class="p">:</span><span class="s">@&quot;Authorization&quot;</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">MRProgressOverlayView</span> <span class="nl">showOverlayAddedTo</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span> <span class="nl">animated</span><span class="p">:</span><span class="nb">YES</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">sharedClient</span> <span class="nl">uploadImage</span><span class="p">:</span><span class="n">imageData</span> <span class="nl">params</span><span class="p">:</span><span class="n">params</span>
+                <span class="nl">success</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="n">AFHTTPRequestOperation</span> <span class="o">*</span><span class="n">operation</span><span class="p">,</span> <span class="kt">id</span> <span class="n">responseObject</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="p">[</span><span class="n">MRProgressOverlayView</span> <span class="nl">dismissOverlayForView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span> <span class="nl">animated</span><span class="p">:</span><span class="nb">YES</span><span class="p">];</span>
+     <span class="p">}</span> <span class="nl">failure</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="n">AFHTTPRequestOperation</span> <span class="o">*</span><span class="n">operation</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+         <span class="p">[</span><span class="n">MRProgressOverlayView</span> <span class="nl">dismissOverlayForView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span> <span class="nl">animated</span><span class="p">:</span><span class="nb">YES</span><span class="p">];</span>
+    <span class="p">}];</span>
+    <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">presentedViewController</span> <span class="nl">dismissViewControllerAnimated</span><span class="p">:</span><span class="nb">YES</span> <span class="nl">completion</span><span class="p">:</span><span class="nb">nil</span><span class="p">];</span>
+<span class="p">}</span></code></pre></div>
+
+<p>I am using <a href="https://github.com/danielebogo/DBCamera">DBCamera</a> to take the photo and initiate the upload. <code>cameraViewController</code> is a method that is called on by <code>DBCamera</code>. This method simply sets up the HTTP client, addes the current token I have stored in <code>UserDefaults</code> (hacky, I know), and sticks it in an <code>NSData</code> object. One important thing to notice here is that I downsample the image by 50% using <code>UIImageJPEGRepresentation</code> before uploading it, to insure faster uploads (and man did they become much faster using this method).</p>
+
+<p>That is about it. Everything here was taken directly from my project and is working as of 10/11/2015. If you have any questions, feel free to reach out to me on <a href="https://twitter.com/josephmisiti">twitter</a> and if you need iOS help, please reach me at <code>joseph.misiti@mathandpencil.com</code></p>
+
+	</article>
+    
+    <script>
+        mixpanel.track("How to Upload a Photo To Django Using iOS and Django Rest Framework");
+    </script>
+    
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li>Math, CS, Statsitics, and the occasional book review</li>
+				<li>
+					<a href="mailto:"></a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

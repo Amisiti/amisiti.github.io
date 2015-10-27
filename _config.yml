@@ -1,0 +1,12 @@
+# Permalinks
+permalink:        /:title.html
+
+# Setup
+title:            My Title
+tagline:          'My Tagline'
+description:      'My Description'
+url:              http://amisiti.github.io
+
+# Build settings
+markdown: kramdown
+permalink: /:title

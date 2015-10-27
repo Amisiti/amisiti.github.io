@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Getting Started With Django On Heroku</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.">
+	<link rel="canonical" href="/getting-started-with-django-on-herkou">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	<script type="text/javascript"
+	    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+        
+    <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+    for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+    mixpanel.init("4a9ea1c313c2d3a01e19ad4f9558dba4");</script><!-- end Mixpanel -->
+</head>
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		<nav class="site-nav">
+			<div class="trigger">
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<a class="home-link" href="/">Back To Blog Posts</a>
+    <header class="post-header">
+		<p class="meta">Mar 3, 2015
+            </p>
+		
+		<h1>Getting Started With Django On Heroku</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>Here is a set of instructions on how to get a Django app running on Heroku. This assumes
+you have a repo in github already.</p>
+
+<p>First, create a new app in Heroku and connect the repo to github:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">heroku</span> <span class="n">login</span>
+<span class="n">heroku</span> <span class="n">git</span><span class="p">:</span><span class="n">remote</span> <span class="o">-</span><span class="n">a</span> <span class="o">&lt;</span><span class="n">APP_NAME</span><span class="o">&gt;</span></code></pre></div>
+
+<p>Next, you can attach a Postgres database for free executing the following command:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">heroku</span> <span class="n">addons</span><span class="p">:</span><span class="n">add</span> <span class="n">heroku</span><span class="o">-</span><span class="n">postgresql</span></code></pre></div>
+
+<p>Next, you need to go back to the Heroku Admin Panel And <a href="https://postgres.heroku.com/databases">Create A Database</a>. I am using the dev version so my database
+is still free.</p>
+
+<p>To tell django about your database, I recommend using the <code>dj-database-url</code> package. This can be done by inserting the following lines of code into you <code>settings.py</code> file.</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">dj_database_url</span>
+<span class="n">DATABASES</span><span class="o">=</span><span class="p">{}</span>
+<span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">dj_database_url</span><span class="o">.</span><span class="n">config</span><span class="p">()</span></code></pre></div>
+
+<h2 id="tailing-heroku-log-files">Tailing Heroku Log Files</h2>
+
+<p>To tail the current Heroku log files of your app, execute the following command</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">heroku</span> <span class="n">logs</span> <span class="o">-</span><span class="n">t</span></code></pre></div>
+
+<h2 id="executing-a-django-command">Executing A Django Command</h2>
+
+<p>To execute a Django <code>manage.py</code> command, you can execute the following command</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">heroku</span> <span class="n">run</span> <span class="n">python</span> <span class="n">manage</span><span class="o">.</span><span class="n">py</span> <span class="n">syncdb</span></code></pre></div>
+
+<h2 id="getting-to-a-bash-shell">Getting to A Bash Shell</h2>
+
+<p>You can get to a bash shell pretty easily by executing the following command:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">heroku</span> <span class="n">run</span> <span class="n">bash</span></code></pre></div>
+
+<p>And you can get to a Python REPL with Django settings by executing the following command:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">heroku</span> <span class="n">run</span> <span class="n">python</span> <span class="n">manage</span><span class="o">.</span><span class="n">py</span> <span class="n">shell</span></code></pre></div>
+
+<h2 id="copying-a-file">Copying a File</h2>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">heroku</span> <span class="n">run</span> <span class="s">&#39;cp some_file copied_file&#39;</span></code></pre></div>
+
+
+	</article>
+    
+    <script>
+        mixpanel.track("Getting Started With Django On Heroku");
+    </script>
+    
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li>Math, CS, Statsitics, and the occasional book review</li>
+				<li>
+					<a href="mailto:"></a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

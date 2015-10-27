@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Statistics in MongoDB</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.">
+	<link rel="canonical" href="/statistics-in-mongodb">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	<script type="text/javascript"
+	    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+        
+    <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+    for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+    mixpanel.init("4a9ea1c313c2d3a01e19ad4f9558dba4");</script><!-- end Mixpanel -->
+</head>
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		<nav class="site-nav">
+			<div class="trigger">
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<a class="home-link" href="/">Back To Blog Posts</a>
+    <header class="post-header">
+		<p class="meta">Dec 26, 2013
+            </p>
+		
+		<h1>Statistics in MongoDB</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>I am creating this blog post as a quick reminder of how to check the size of my database:</p>
+
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="o">&gt;</span> <span class="n">db</span><span class="o">.</span><span class="n">stats</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+ 
+<span class="p">{</span>
+	<span class="s2">&quot;db&quot;</span> <span class="p">:</span> <span class="s2">&quot;sqdev&quot;</span><span class="p">,</span>
+	<span class="s2">&quot;collections&quot;</span> <span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+	<span class="s2">&quot;objects&quot;</span> <span class="p">:</span> <span class="mi">31509618</span><span class="p">,</span>
+	<span class="s2">&quot;avgObjSize&quot;</span> <span class="p">:</span> <span class="mi">704</span><span class="o">.</span><span class="mi">2919142974059</span><span class="p">,</span>
+	<span class="s2">&quot;dataSize&quot;</span> <span class="p">:</span> <span class="mi">21671844</span><span class="p">,</span>
+	<span class="s2">&quot;storageSize&quot;</span> <span class="p">:</span> <span class="mi">24783691</span><span class="p">,</span>
+	<span class="s2">&quot;numExtents&quot;</span> <span class="p">:</span> <span class="mi">163</span><span class="p">,</span>
+	<span class="s2">&quot;indexes&quot;</span> <span class="p">:</span> <span class="mi">44</span><span class="p">,</span>
+	<span class="s2">&quot;indexSize&quot;</span> <span class="p">:</span> <span class="mi">25900801</span><span class="p">,</span>
+	<span class="s2">&quot;fileSize&quot;</span> <span class="p">:</span> <span class="mi">64915456</span><span class="p">,</span>
+	<span class="s2">&quot;nsSizeMB&quot;</span> <span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+	<span class="s2">&quot;ok&quot;</span> <span class="p">:</span> <span class="mi">1</span>
+<span class="p">}</span></code></pre></div>
+
+<p>Per the documentation @ 10Gen, the results of this command return kilobytes[1]. So just divide</p>
+
+<p>everything by (1024^2) to get gigobytes.</p>
+
+<p>31509618/(1024^2) = ~31Gs of data</p>
+
+<p>25900801/(1024^2) = ~25G of indexes (WTF??)</p>
+
+<p>[1] http://docs.mongodb.org/manual/reference/database-statistics/</p>
+
+	</article>
+    
+    <script>
+        mixpanel.track("Statistics in MongoDB");
+    </script>
+    
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li>Math, CS, Statsitics, and the occasional book review</li>
+				<li>
+					<a href="mailto:"></a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Adding Swap Space on Ubuntu 14.04</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.">
+	<link rel="canonical" href="/adding-swap-space-on-ubuntu-1404">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	<script type="text/javascript"
+	    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+        
+    <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+    for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+    mixpanel.init("4a9ea1c313c2d3a01e19ad4f9558dba4");</script><!-- end Mixpanel -->
+</head>
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		<nav class="site-nav">
+			<div class="trigger">
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<a class="home-link" href="/">Back To Blog Posts</a>
+    <header class="post-header">
+		<p class="meta">Aug 25, 2015
+            </p>
+		
+		<h1>Adding Swap Space on Ubuntu 14.04</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>Recently, I ran into the following error while installing some software on Ubuntu 14.04:</p>
+
+<p><code>
+virtual memory exhausted: Cannot allocate memory
+</code></p>
+
+<p>Not good - but the fix is easy – add some swap space to your instance. The following
+is a list of commands you can use to successfully resolve this problem:</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="m">85</span>  <span class="nb">cd</span> /
+<span class="m">87</span>  sudo dd <span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>swapfile <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span>3000
+<span class="m">88</span>  sudo mkswap swapfile
+<span class="m">89</span>  sudo vi /etc/fstab</code></pre></div>
+
+<p>Now add the following like to <code>/etc/fstab</code>:</p>
+
+<p><code>
+/swapfile none swap sw 0 0
+</code></p>
+
+<p>And do not forgot to reboot …..</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="m">95</span>  sudo reboot</code></pre></div>
+
+<p>How lets make sure the swap space exists:</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">ubuntu@ip-172-30-0-233:~<span class="nv">$ </span>cat /proc/meminfo <span class="p">|</span> grep <span class="s1">&#39;[Ss]wap&#39;</span>
+SwapCached:         <span class="m">3720</span> kB
+SwapTotal:       <span class="m">3071996</span> kB
+SwapFree:        <span class="m">3059708</span> kB</code></pre></div>
+
+<p>As you can see, you now have 3GB of swap space on your device !!! Not - EC2 comes with ZERO swap 
+space by default - so it might be no a surprise if you are seeing this issue - especially on a <code>t2.micro</code>
+instance.</p>
+
+	</article>
+    
+    <script>
+        mixpanel.track("Adding Swap Space on Ubuntu 14.04");
+    </script>
+    
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li>Math, CS, Statsitics, and the occasional book review</li>
+				<li>
+					<a href="mailto:"></a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/">
+						<span class="username"></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Joe is a software engineer living in lower manhattan that specializes in machine learning, statistics, python, and computer vision.</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>
